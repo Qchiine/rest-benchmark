@@ -1,0 +1,29 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: variant-a-jersey
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+        labels:
+          variant: A
+
+  - job_name: variant-c-restcontroller
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8082']
+        labels:
+          variant: C
+
+  - job_name: variant-d-springdatarest
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['host.docker.internal:8083']
+        labels:
+          variant: D
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']

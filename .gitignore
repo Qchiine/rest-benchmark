@@ -1,0 +1,12 @@
+target/
+*.log
+app.log
+app.err.log
+jetty.log
+.idea
+*.iml
+.vscode
+.DS_Store
+jmeter/results/*.jtl
+jmeter/results/*-summary.txt
+db/seed.sql

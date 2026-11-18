@@ -1,0 +1,64 @@
+# Stack de monitoring du benchmark : Prometheus + InfluxDB v2 + Grafana
+#
+# Utilisation :
+#   docker compose up -d
+#   Prometheus : http://localhost:9090
+#   InfluxDB   : http://localhost:8086 (admin / bench-admin-token)
+#   Grafana    : http://localhost:3000 (admin / admin)
+#
+# Les trois variantes exposent /actuator/prometheus sur leur port respectif.
+# Seule la variante lancee est scrappee : les cibles injoignables sont ignorees.
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: bench-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: bench-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: bench-admin-pass
+      DOCKER_INFLUXDB_INIT_ORG: perf
+      DOCKER_INFLUXDB_INIT_BUCKET: jmeter
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: bench-token
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: bench-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: ""
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+      - influxdb
+    restart: unless-stopped
+
+volumes:
+  prometheus-data:
+  influxdb-data:
+  grafana-data:
